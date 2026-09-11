@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Analyzer Dashboard</title>
+    <style>
+        :root {
+            --bg-gradient: linear-gradient(135deg, #06090f 0%, #0d151c 100%);
+            --card-bg: rgba(17, 26, 36, 0.75);
+            --card-border: rgba(16, 185, 129, 0.15);
+            --card-hover-border: rgba(16, 185, 129, 0.5);
+            --card-hover-bg: rgba(20, 32, 44, 0.9);
+            --primary-color: #10b981;
+            --primary-hover: #059669;
+            --primary-glow: rgba(16, 185, 129, 0.25);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --step-bg: rgba(13, 21, 28, 0.7);
+            --input-bg: rgba(22, 35, 48, 0.6);
+            --border-color: rgba(51, 65, 85, 0.6);
+            --danger-color: #f43f5e;
+            --badge-bg: rgba(16, 185, 129, 0.12);
+            --badge-text: #34d399;
+            --hospital-badge-bg: rgba(59, 130, 246, 0.15);
+            --hospital-badge-text: #60a5fa;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg-gradient);
+            background-attachment: fixed;
+            color: var(--text-main);
+            margin: 0;
+            padding: 16px 12px 60px 12px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 40px 20px;
+            }
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        @media (min-width: 768px) {
+            header {
+                margin-bottom: 45px;
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: center;
+                text-align: left;
+            }
+        }
+
+        header h1 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.7rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            text-shadow: 0 0 25px rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+        }
+
+        @media (min-width: 768px) {
+            header h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Physics Toggle Button Style */
+        .physics-toggle-btn {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            font-size: 0.78rem;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            backdrop-filter: blur(10px);
+            transition: all 0.2s ease;
+        }
+
+        .physics-toggle-btn:hover {
+            border-color: var(--primary-color);
+            color: var(--text-main);
+            background-color: var(--input-bg);
+        }
+
+        .physics-toggle-btn.active {
+            border-color: var(--primary-color);
+            color: var(--badge-text);
+            background-color: var(--badge-bg);
+        }
+
+        /* Search Section */
+        .search-container {
+            position: relative;
+            margin-bottom: 25px;
+        }
+
+        .search-container input {
+            width: 100%;
+            padding: 14px 16px 14px 44px;
+            font-size: 0.95rem;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            color: var(--text-main);
+            outline: none;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        @media (min-width: 768px) {
+            .search-container input {
+                padding: 18px 20px 18px 54px;
+                font-size: 1.1rem;
+                border-radius: 14px;
+            }
+        }
+
+        .search-container input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-glow), 0 8px 20px rgba(0, 0, 0, 0.3);
+            background-color: var(--input-bg);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary-color);
+            font-size: 1rem;
+            pointer-events: none;
+        }
+
+        @media (min-width: 768px) {
+            .search-icon {
+                left: 20px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Card Grid Layout */
+        .card-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+            margin-bottom: 35px;
+        }
+
+        @media (min-width: 640px) {
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+                gap: 25px;
+                margin-bottom: 50px;
+            }
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 18px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .card {
+                padding: 24px;
+                transition: transform 0.2s ease, border-color 0.2s ease, background-color 0.2s ease;
+            }
+            .card:hover {
+                transform: translateY(-5px);
+                border-color: var(--card-hover-border);
+                background-color: var(--card-hover-bg);
+                box-shadow: 0 20px 35px -10px rgba(16, 185, 129, 0.15);
+            }
+        }
+
+        .card-top-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-bottom: 12px;
+        }
+
+        .card h3 {
+            margin: 0;
+            color: var(--primary-color);
+            font-size: 1.15rem;
+        }
+
+        @media (min-width: 768px) {
+            .card h3 {
+                font-size: 1.3rem;
+            }
+        }
+
+        /* Swipeable Versions Carousel Container */
+        .versions-carousel-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .versions-container {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 12px;
+            padding-bottom: 4px;
+        }
+
+        .versions-container::-webkit-scrollbar {
+            display: none;
+        }
+
+        .version-slide {
+            flex: 0 0 100%;
+            width: 100%;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .version-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2px;
+        }
+
+        .hospital-badge {
+            background-color: var(--hospital-badge-bg);
+            color: var(--hospital-badge-text);
+            padding: 3px 8px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            white-space: nowrap;
+        }
+
+        .temp-badge {
+            background-color: var(--badge-bg);
+            color: var(--badge-text);
+            padding: 3px 8px;
+            font-size: 0.68rem;
+            font-weight: 700;
+            border-radius: 6px;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            white-space: nowrap;
+        }
+
+        /* Carousel Indicators / Dots */
+        .carousel-dots {
+            display: flex;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 10px;
+            margin-bottom: 6px;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: var(--border-color);
+            transition: background-color 0.2s ease, width 0.2s ease;
+            cursor: pointer;
+        }
+
+        .dot.active {
+            background-color: var(--primary-color);
+            width: 16px;
+            border-radius: 4px;
+        }
+
+        .step-block {
+            background-color: var(--step-bg);
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 0.88rem;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .step-title {
+            font-weight: 700;
+            color: var(--primary-color);
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            margin-bottom: 4px;
+            opacity: 0.9;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+            gap: 10px;
+        }
+
+        .detail-row span:first-child {
+            color: var(--text-muted);
+        }
+
+        .detail-row strong {
+            color: var(--text-main);
+            text-align: right;
+        }
+
+        .card-actions {
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            padding-top: 10px;
+        }
+
+        .swipe-hint {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        /* Input Controls Layout */
+        .input-unit-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .input-unit-group input {
+            flex: 2;
+        }
+
+        .input-unit-group select {
+            flex: 1;
+            min-width: 75px;
+        }
+
+        /* Action Buttons */
+        .btn {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: #06090f;
+            border: none;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 700;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%;
+        }
+
+        @media (min-width: 640px) {
+            .btn {
+                width: auto;
+                font-size: 1.05rem;
+                padding: 14px 28px;
+            }
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 22px rgba(16, 185, 129, 0.5);
+        }
+
+        .btn-delete {
+            background-color: rgba(244, 63, 94, 0.12);
+            color: var(--danger-color);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-delete:hover {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .btn-add-version {
+            background-color: rgba(16, 185, 129, 0.12);
+            color: var(--badge-text);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 5px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .btn-add-version:hover {
+            background-color: var(--primary-color);
+            color: #06090f;
+        }
+
+        /* High-Performance Physics Floating Action Button (FAB) */
+        #fabBtn {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 52px;
+            height: 52px;
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-hover));
+            color: #06090f;
+            border: none;
+            border-radius: 50%;
+            font-size: 20px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: grab;
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+            z-index: 1000;
+            touch-action: none;
+            -webkit-touch-callout: none;
+            will-change: transform;
+        }
+
+        @media (min-width: 768px) {
+            #fabBtn {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+        }
+
+        #fabBtn:active {
+            cursor: grabbing;
+        }
+
+        /* Collapsible Form Section */
+        .form-section {
+            background-color: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 0 14px;
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            margin-top: 0;
+            border: none;
+            transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+        }
+
+        @media (min-width: 768px) {
+            .form-section {
+                padding: 0 35px;
+            }
+        }
+
+        .form-section.show {
+            max-height: 1500px;
+            opacity: 1;
+            padding: 20px 14px;
+            border: 1px solid var(--card-border);
+            margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .form-section.show {
+                padding: 35px;
+            }
+        }
+
+        .form-section h2 {
+            margin-top: 0;
+            margin-bottom: 18px;
+            font-size: 1.2rem;
+            color: var(--text-main);
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        @media (min-width: 768px) {
+            .form-section h2 {
+                font-size: 1.4rem;
+                margin-bottom: 24px;
+                padding-bottom: 14px;
+            }
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+            margin-bottom: 20px;
+        }
+
+        @media (min-width: 640px) {
+            .form-grid {
+                grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+                gap: 20px;
+                margin-bottom: 25px;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        input[type="text"], select {
+            padding: 12px 14px;
+            font-size: 0.95rem;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            color: var(--text-main);
+            outline: none;
+            width: 100%;
+        }
+
+        input[type="text"]:focus, select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 4px var(--primary-glow);
+        }
+
+        select option {
+            background-color: #111a24;
+            color: var(--text-main);
+        }
+
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 30px 15px;
+            font-size: 0.9rem;
+            font-style: italic;
+            background-color: var(--card-bg);
+            border-radius: 16px;
+            border: 1px dashed var(--border-color);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Physics Bouncing Ball Floating Button -->
+<button id="fabBtn" title="Throw me around or click to open/close form!">➕</button>
+
+<div class="container">
+    <header>
+        <h1>🔬 Analyzer Dashboard</h1>
+        <button id="physicsToggleBtn" class="physics-toggle-btn active" onclick="togglePhysics()">🛑 Disable Physics</button>
+    </header>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <span class="search-icon">🔍</span>
+        <input type="text" id="searchInput" placeholder="Search by test name or hospital (e.g., Glycemia, CHU)..." onkeyup="filterProtocols()">
+    </div>
+
+    <!-- Protocols Grid -->
+    <div class="card-grid" id="protocolContainer"></div>
+
+    <!-- Add Custom Protocol Form -->
+    <div class="form-section" id="formSection">
+        <h2 id="formTitle">Add New Assay Protocol</h2>
+        <form id="protocolForm" onsubmit="saveProtocolForm(event)">
+            <input type="hidden" id="editTestId" value="">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="testName">Test Name</label>
+                    <input type="text" id="testName" required placeholder="e.g., Glycemia (Glucose)">
+                </div>
+                <div class="form-group">
+                    <label for="hospitalName">Hospital / Lab Name</label>
+                    <input type="text" id="hospitalName" required placeholder="e.g., CHU Central Hospital">
+                </div>
+                <div class="form-group">
+                    <label for="temp">Temperature</label>
+                    <input type="text" id="temp" required placeholder="e.g., 37°C">
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="mixOrder">Assay / Reagent Mixing Type</label>
+                    <select id="mixOrder" onchange="handleMixOrderChange()">
+                        <option value="single">Single Reagent (R1 Only)</option>
+                        <option value="r1_sample_r2">R1 + Sample ➔ Incubation ➔ R2 (Standard)</option>
+                        <option value="r1_r2_sample">R1 + R2 Mixed First ➔ Sample ➔ Incubation</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="r1Val">Reagent 1 (R1) Quantity</label>
+                    <div class="input-unit-group">
+                        <input type="text" id="r1Val" required placeholder="e.g., 250">
+                        <select id="r1Unit">
+                            <option value="µL">µL</option><option value="mL">mL</option><option value="drops">drops</option><option value="µg">µg</option><option value="mg">mg</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-group r2-group hidden">
+                    <label for="r2Val">Reagent 2 (R2) Quantity</label>
+                    <div class="input-unit-group">
+                        <input type="text" id="r2Val" placeholder="e.g., 50">
+                        <select id="r2Unit">
+                            <option value="µL">µL</option><option value="mL">mL</option><option value="drops">drops</option><option value="µg">µg</option><option value="mg">mg</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="sampleVal">Sample Plasma / Serum Quantity</label>
+                    <div class="input-unit-group">
+                        <input type="text" id="sampleVal" required placeholder="e.g., 2.5">
+                        <select id="sampleUnit">
+                            <option value="µL">µL</option><option value="mL">mL</option><option value="drops">drops</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group full-width">
+                    <label for="incubation1">Incubation / Reaction Timing Details</label>
+                    <input type="text" id="incubation1" required placeholder="e.g., 10 min at 37°C or Read at 505nm">
+                </div>
+            </div>
+            <button type="submit" class="btn"><span>💾 Save Protocol Version</span></button>
+        </form>
+    </div>
+</div>
+
+<script>
+    const defaultProtocols = [
+        {
+            id: "p1",
+            testName: "Glycemia (Glucose - GOD-PAP)",
+            versions: [
+                {
+                    versionId: "v1_1",
+                    hospitalName: "General Hospital",
+                    temp: "37°C",
+                    mixOrder: "single",
+                    r1Details: "250 µL",
+                    r2Details: "",
+                    sampleDetails: "2.5 µL Plasma",
+                    incubation1: "10 Minutes at 37°C / Read at 505nm"
+                },
+                {
+                    versionId: "v1_2",
+                    hospitalName: "University Clinic (CHU)",
+                    temp: "37°C",
+                    mixOrder: "single",
+                    r1Details: "200 µL",
+                    r2Details: "",
+                    sampleDetails: "2.0 µL Plasma",
+                    incubation1: "5 Minutes at 37°C / Read at 500nm"
+                }
+            ]
+        },
+        {
+            id: "p2",
+            testName: "Creatinine (Jaffe Kinetic)",
+            versions: [
+                {
+                    versionId: "v2_1",
+                    hospitalName: "Central Lab",
+                    temp: "37°C",
+                    mixOrder: "r1_sample_r2",
+                    r1Details: "200 µL (Buffer)",
+                    r2Details: "50 µL (Picric Acid)",
+                    sampleDetails: "20 µL Plasma/Serum",
+                    incubation1: "Incubate 30s, then add R2 & read delta A up to 90s"
+                }
+            ]
+        }
+    ];
+
+    let protocols = JSON.parse(localStorage.getItem('lab_analyzer_dash_v2')) || defaultProtocols;
+
+    // Physics Controller State
+    let physicsEnabled = true;
+
+    function togglePhysics() {
+        physicsEnabled = !physicsEnabled;
+        const toggleBtn = document.getElementById('physicsToggleBtn');
+        
+        if (physicsEnabled) {
+            toggleBtn.innerHTML = "🛑 Disable Physics";
+            toggleBtn.classList.add("active");
+            fab.style.cursor = "grab";
+            updateBallPosition();
+        } else {
+            toggleBtn.innerHTML = "✨ Enable Physics";
+            toggleBtn.classList.remove("active");
+            fab.style.cursor = "pointer";
+            posX = 20;
+            posY = 20;
+            fab.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+        }
+    }
+
+    // Advanced Momentum Throw Physics Ball
+    const fab = document.getElementById('fabBtn');
+    let posX = 30, posY = 80;
+    let velX = 0, velY = 0;
+    let isDragging = false;
+    let hasMoved = false;
+    let lastClientX = 0, lastClientY = 0;
+    let lastTime = performance.now();
+    let velocityBuffer = [];
+
+    function startDrag(clientX, clientY) {
+        if (!physicsEnabled) return;
+        isDragging = true;
+        hasMoved = false;
+        lastClientX = clientX;
+        lastClientY = clientY;
+        velX = 0;
+        velY = 0;
+        velocityBuffer = [];
+        lastTime = performance.now();
+    }
+
+    function moveDrag(clientX, clientY) {
+        if (!physicsEnabled || !isDragging) return;
+        
+        const currentTime = performance.now();
+        const dt = Math.max((currentTime - lastTime) / 1000, 0.001); 
+        lastTime = currentTime;
+
+        const dx = clientX - lastClientX;
+        const dy = clientY - lastClientY;
+
+        if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+            hasMoved = true;
+        }
+
+        posX += dx;
+        posY += dy;
+
+        const instantVelX = dx / dt;
+        const instantVelY = dy / dt;
+
+        velocityBuffer.push({ x: instantVelX, y: instantVelY });
+        if (velocityBuffer.length > 5) {
+            velocityBuffer.shift();
+        }
+
+        lastClientX = clientX;
+        lastClientY = clientY;
+
+        updateBallPosition();
+    }
+
+    function endDrag() {
+        if (!isDragging) return;
+        isDragging = false;
+
+        if (!hasMoved) {
+            toggleForm();
+        } else if (physicsEnabled && velocityBuffer.length > 0) {
+            let avgX = 0;
+            let avgY = 0;
+            for (let i = 0; i < velocityBuffer.length; i++) {
+                avgX += velocityBuffer[i].x;
+                avgY += velocityBuffer[i].y;
+            }
+            velX = (avgX / velocityBuffer.length) * 0.8;
+            velY = (avgY / velocityBuffer.length) * 0.8;
+        }
+    }
+
+    // Mouse Listeners
+    fab.addEventListener('mousedown', (e) => {
+        startDrag(e.clientX, e.clientY);
+        e.preventDefault();
+    });
+    window.addEventListener('mousemove', (e) => {
+        moveDrag(e.clientX, e.clientY);
+    });
+    window.addEventListener('mouseup', () => {
+        endDrag();
+    });
+
+    // Touch Listeners for Phones
+    fab.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+            startDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchmove', (e) => {
+        if (isDragging && e.touches.length === 1) {
+            moveDrag(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    window.addEventListener('touchend', () => {
+        endDrag();
+    });
+
+    fab.addEventListener('click', () => {
+        if (!physicsEnabled) {
+            toggleForm();
+        }
+    });
+
+    function updateBallPosition() {
+        if (!physicsEnabled) return;
+        const maxLeft = window.innerWidth - fab.offsetWidth;
+        const maxTop = window.innerHeight - fab.offsetHeight;
+        posX = Math.max(0, Math.min(posX, maxLeft));
+        posY = Math.max(0, Math.min(posY, maxTop));
+        
+        fab.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+    }
+
+    let lastFrameTime = performance.now();
+    function physicsLoop(currentTime) {
+        const dt = Math.min((currentTime - lastFrameTime) / 1000, 0.1);
+        lastFrameTime = currentTime;
+
+        if (physicsEnabled && !isDragging) {
+            velY += 800 * dt; 
+            velX *= 0.985; 
+            velY *= 0.985;
+
+            posX += velX * dt;
+            posY += velY * dt;
+
+            const maxLeft = window.innerWidth - fab.offsetWidth;
+            const maxTop = window.innerHeight - fab.offsetHeight;
+
+            if (posY >= maxTop) {
+                posY = maxTop;
+                velY = -velY * 0.75; 
+                velX *= 0.85;
+            }
+            if (posY <= 0) {
+                posY = 0;
+                velY = -velY * 0.75;
+            }
+            if (posX >= maxLeft) {
+                posX = maxLeft;
+                velX = -velX * 0.75;
+            }
+            if (posX <= 0) {
+                posX = 0;
+                velX = -velX * 0.75;
+            }
+
+            updateBallPosition();
+        }
+
+        requestAnimationFrame(physicsLoop);
+    }
+    requestAnimationFrame(physicsLoop);
+
+    function openAddForm(presetTestName = '') {
+        const formSection = document.getElementById('formSection');
+        formSection.classList.add('show');
+        fab.innerHTML = '✖';
+        formSection.scrollIntoView({ behavior: 'smooth' });
+
+        document.getElementById('protocolForm').reset();
+        document.getElementById('editTestId').value = '';
+        document.getElementById('formTitle').innerText = presetTestName ? `Add Version for: ${presetTestName}` : 'Add New Assay Protocol';
+        
+        if (presetTestName) {
+            document.getElementById('testName').value = presetTestName;
+            document.getElementById('testName').setAttribute('readonly', 'true');
+        } else {
+            document.getElementById('testName').removeAttribute('readonly');
+        }
+        handleMixOrderChange();
+    }
+
+    function toggleForm() {
+        const formSection = document.getElementById('formSection');
+        if (formSection.classList.contains('show')) {
+            formSection.classList.remove('show');
+            fab.innerHTML = '➕';
+        } else {
+            openAddForm();
+        }
+    }
+
+    function handleMixOrderChange() {
+        const order = document.getElementById('mixOrder').value;
+        const r2Group = document.querySelector('.r2-group');
+        const r2Val = document.getElementById('r2Val');
+
+        if (order === 'single') {
+            r2Group.classList.add('hidden');
+            r2Val.removeAttribute('required');
+            r2Val.value = '';
+        } else {
+            r2Group.classList.remove('hidden');
+            r2Val.setAttribute('required', 'true');
+        }
+    }
+
+    function renderProtocols(data) {
+        const container = document.getElementById('protocolContainer');
+        container.innerHTML = '';
+
+        if (data.length === 0) {
+            container.innerHTML = `<div class="no-results">No matching protocols found. Click or throw the floating ➕ button to create one!</div>`;
+            return;
+        }
+
+        data.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'card';
+            
+            let slidesHTML = '';
+            let dotsHTML = '';
+
+            item.versions.forEach((ver, index) => {
+                let mixingStepsHTML = '';
+                if (ver.mixOrder === 'single') {
+                    mixingStepsHTML = `<div class="step-block"><div class="step-title">Assay Procedure</div><div class="detail-row"><span>Reagent (R1):</span> <strong>${ver.r1Details}</strong></div><div class="detail-row"><span>Sample (Plasma):</span> <strong>${ver.sampleDetails}</strong></div></div>`;
+                } else if (ver.mixOrder === 'r1_sample_r2') {
+                    mixingStepsHTML = `<div class="step-block"><div class="step-title">Step 1: Initial Addition</div><div class="detail-row"><span>R1 Reagent:</span> <strong>${ver.r1Details}</strong></div><div class="detail-row"><span>Sample (Plasma):</span> <strong>${ver.sampleDetails}</strong></div></div><div class="step-block"><div class="step-title">Step 2: Secondary Addition</div><div class="detail-row"><span>R2 Reagent:</span> <strong>${ver.r2Details}</strong></div></div>`;
+                } else if (ver.mixOrder === 'r1_r2_sample') {
+                    mixingStepsHTML = `<div class="step-block"><div class="step-title">Step 1: Working Reagent Mix</div><div class="detail-row"><span>R1 Reagent:</span> <strong>${ver.r1Details}</strong></div><div class="detail-row"><span>R2 Reagent:</span> <strong>${ver.r2Details}</strong></div></div><div class="step-block"><div class="step-title">Step 2: Sample Addition</div><div class="detail-row"><span>Sample (Plasma):</span> <strong>${ver.sampleDetails}</strong></div></div>`;
+                }
+
+                slidesHTML += `
+                    <div class="version-slide" data-index="${index}">
+                        <div class="version-header-row">
+                            <span class="hospital-badge">🏥 ${ver.hospitalName}</span>
+                            <span class="temp-badge">${ver.temp}</span>
+                        </div>
+                        ${mixingStepsHTML}
+                        <div class="step-block">
+                            <div class="step-title">Incubation / Reading</div>
+                            <div style="color: var(--text-main); font-weight: 500; font-size: 0.85rem;">${ver.incubation1}</div>
+                        </div>
+                    </div>
+                `;
+
+                dotsHTML += `<span class="dot ${index === 0 ? 'active' : ''}" onclick="scrollToVersion('${item.id}', ${index})"></span>`;
+            });
+
+            card.innerHTML = `
+                <div>
+                    <div class="card-top-info">
+                        <h3>${item.testName}</h3>
+                        <span class="swipe-hint">${item.versions.length > 1 ? '👉 Swipe variants' : '1 Version'}</span>
+                    </div>
+                    
+                    <div class="versions-carousel-wrapper">
+                        <div class="versions-container" id="carousel-${item.id}" onscroll="updateActiveDot('${item.id}')">
+                            ${slidesHTML}
+                        </div>
+                    </div>
+
+                    <div class="carousel-dots" id="dots-${item.id}">
+                        ${dotsHTML}
+                    </div>
+                </div>
+                
+                <div class="card-actions">
+                    <button class="btn-add-version" onclick="openAddForm('${item.testName.replace(/'/g, "\\'")}')">➕ Add Hospital</button>
+                    <button class="btn-delete" onclick="deleteTestOrVersion('${item.id}')">🗑️ Delete Version</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+
+    function scrollToVersion(testId, index) {
+        const carousel = document.getElementById(`carousel-${testId}`);
+        const slideWidth = carousel.clientWidth;
+        carousel.scrollTo({
+            left: slideWidth * index,
+            behavior: 'smooth'
+        });
+    }
+
+    function updateActiveDot(testId) {
+        const carousel = document.getElementById(`carousel-${testId}`);
+        const dotsContainer = document.getElementById(`dots-${testId}`);
+        if (!carousel || !dotsContainer) return;
+
+        const slideWidth = carousel.clientWidth;
+        const currentIndex = Math.round(carousel.scrollLeft / slideWidth);
+
+        const dots = dotsContainer.getElementsByClassName('dot');
+        for (let i = 0; i < dots.length; i++) {
+            if (i === currentIndex) {
+                dots[i].classList.add('active');
+            } else {
+                dots[i].classList.remove('active');
+            }
+        }
+    }
+
+    function filterProtocols() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
+        const filtered = protocols.map(item => {
+            const matchesTest = item.testName.toLowerCase().includes(query);
+            const matchingVersions = item.versions.filter(ver => 
+                matchesTest || 
+                ver.hospitalName.toLowerCase().includes(query) ||
+                ver.r1Details.toLowerCase().includes(query) ||
+                ver.r2Details.toLowerCase().includes(query)
+            );
+            if (matchingVersions.length > 0) {
+                return { ...item, versions: matchingVersions };
+            }
+            return null;
+        }).filter(Boolean);
+
+        renderProtocols(filtered);
+    }
+
+    function saveProtocolForm(e) {
+        e.preventDefault();
+        const testNameInput = document.getElementById('testName').value.trim();
+        const hospitalName = document.getElementById('hospitalName').value.trim();
+        const mixOrder = document.getElementById('mixOrder').value;
+        const r1Details = `${document.getElementById('r1Val').value.trim()} ${document.getElementById('r1Unit').value}`;
+        let r2Details = mixOrder !== 'single' ? `${document.getElementById('r2Val').value.trim()} ${document.getElementById('r2Unit').value}` : "";
+        const sampleDetails = `${document.getElementById('sampleVal').value.trim()} ${document.getElementById('sampleUnit').value} Plasma`;
+
+        const newVersion = {
+            versionId: 'v_' + Date.now(),
+            hospitalName: hospitalName,
+            temp: document.getElementById('temp').value.trim(),
+            mixOrder: mixOrder,
+            r1Details: r1Details,
+            r2Details: r2Details,
+            sampleDetails: sampleDetails,
+            incubation1: document.getElementById('incubation1').value.trim()
+        };
+
+        let existingTest = protocols.find(p => p.testName.toLowerCase() === testNameInput.toLowerCase());
+
+        if (existingTest) {
+            existingTest.versions.push(newVersion);
+        } else {
+            const newTestObj = {
+                id: 'p_' + Date.now(),
+                testName: testNameInput,
+                versions: [newVersion]
+            };
+            protocols.push(newTestObj);
+        }
+
+        localStorage.setItem('lab_analyzer_dash_v2', JSON.stringify(protocols));
+        
+        document.getElementById('protocolForm').reset();
+        toggleForm();
+        renderProtocols(protocols);
+    }
+
+    function deleteTestOrVersion(testId) {
+        const testObj = protocols.find(p => p.id === testId);
+        if (!testObj) return;
+
+        const carousel = document.getElementById(`carousel-${testId}`);
+        let activeIndex = 0;
+        if (carousel) {
+            activeIndex = Math.round(carousel.scrollLeft / carousel.clientWidth);
+        }
+
+        const targetHospital = testObj.versions[activeIndex]?.hospitalName || "this version";
+
+        if (confirm(`Are you sure you want to delete the protocol version for "${targetHospital}"?`)) {
+            if (testObj.versions.length <= 1) {
+                if (confirm(`This is the last version. Delete the entire test card?`)) {
+                    protocols = protocols.filter(p => p.id !== testId);
+                }
+            } else {
+                testObj.versions.splice(activeIndex, 1);
+            }
+
+            localStorage.setItem('lab_analyzer_dash_v2', JSON.stringify(protocols));
+            renderProtocols(protocols);
+        }
+    }
+
+    handleMixOrderChange();
+    renderProtocols(protocols);
+    updateBallPosition();
+</script>
+
+</body>
+</html>
