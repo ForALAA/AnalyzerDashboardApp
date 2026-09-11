@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Analyzer Dashboard</title>
+    <!-- Link to PWA Manifest for Full Screen Mode -->
+    <link rel="manifest" href="manifest.json">
+    <!-- iOS / Safari Full Screen Support -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#10b981">
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #06090f 0%, #0d151c 100%);
@@ -87,6 +93,13 @@
             header h1 {
                 font-size: 2.5rem;
             }
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         /* Physics Toggle Button Style */
@@ -485,7 +498,6 @@
             overflow: hidden;
             opacity: 0;
             margin-top: 0;
-            border: none;
             transition: max-height 0.3s ease, opacity 0.3s ease, padding 0.3s ease, margin 0.3s ease;
         }
 
@@ -603,7 +615,10 @@
 <div class="container">
     <header>
         <h1>🔬 Analyzer Dashboard</h1>
-        <button id="physicsToggleBtn" class="physics-toggle-btn active" onclick="togglePhysics()">🛑 Disable Physics</button>
+        <div class="header-controls">
+            <button id="physicsToggleBtn" class="physics-toggle-btn active" onclick="togglePhysics()">🛑 Disable Physics</button>
+            <button class="physics-toggle-btn" onclick="toggleFullScreen()">📱 Full Screen</button>
+        </div>
     </header>
 
     <!-- Search Bar -->
@@ -750,6 +765,18 @@
             posX = 20;
             posY = 20;
             fab.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+        }
+    }
+
+    function toggleFullScreen() {
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen().catch(err => {
+                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
+            });
+        } else {
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
         }
     }
 
