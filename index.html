@@ -610,14 +610,13 @@
 <body>
 
 <!-- Physics Bouncing Ball Floating Button -->
-<button id="fabBtn" title="Throw me around or tilt your phone!">➕</button>
+<button id="fabBtn" title="Throw me around or click to open/close form!">➕</button>
 
 <div class="container">
     <header>
         <h1>🔬 Analyzer Dashboard</h1>
         <div class="header-controls">
             <button id="physicsToggleBtn" class="physics-toggle-btn active" onclick="togglePhysics()">🛑 Disable Physics</button>
-            <button class="physics-toggle-btn" id="motionPermBtn" onclick="requestMotionPermission()" style="display:none;">📱 Enable Tilt</button>
         </div>
     </header>
 
@@ -748,8 +747,6 @@
 
     // Physics Controller State
     let physicsEnabled = true;
-    let tiltX = 0;
-    let tiltY = 0;
 
     function togglePhysics() {
         physicsEnabled = !physicsEnabled;
@@ -770,37 +767,7 @@
         }
     }
 
-    // Handle iOS / Mobile Device Orientation Permission & Events
-    function requestMotionPermission() {
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-            DeviceMotionEvent.requestPermission().then(response => {
-                if (response === 'granted') {
-                    window.addEventListener('deviceorientation', handleOrientation);
-                    document.getElementById('motionPermBtn').style.display = 'none';
-                }
-            }).catch(console.error);
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation);
-            document.getElementById('motionPermBtn').style.display = 'none';
-        }
-    }
-
-    function handleOrientation(e) {
-        // e.gamma is left/right tilt (-90 to 90)
-        // e.beta is front/back tilt (-180 to 180) - when flipping upside down, beta shifts past 90 or negative
-        if (e.gamma !== null) tiltX = e.gamma;
-        if (e.beta !== null) tiltY = e.beta;
-    }
-
-    if (window.DeviceOrientationEvent) {
-        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-            document.getElementById('motionPermBtn').style.display = 'inline-block';
-        } else {
-            window.addEventListener('deviceorientation', handleOrientation);
-        }
-    }
-
-    // Ultra-Fast & Fully Responsive Tilt/Gravity Physics Ball
+    // Advanced Momentum Throw Physics Ball
     const fab = document.getElementById('fabBtn');
     let posX = 30, posY = 80;
     let velX = 0, velY = 0;
@@ -866,11 +833,12 @@
                 avgX += velocityBuffer[i].x;
                 avgY += velocityBuffer[i].y;
             }
-            velX = (avgX / velocityBuffer.length) * 0.98;
-            velY = (avgY / velocityBuffer.length) * 0.98;
+            velX = (avgX / velocityBuffer.length) * 0.8;
+            velY = (avgY / velocityBuffer.length) * 0.8;
         }
     }
 
+    // Mouse Listeners
     fab.addEventListener('mousedown', (e) => {
         startDrag(e.clientX, e.clientY);
         e.preventDefault();
@@ -882,6 +850,7 @@
         endDrag();
     });
 
+    // Touch Listeners for Phones
     fab.addEventListener('touchstart', (e) => {
         if (e.touches.length === 1) {
             startDrag(e.touches[0].clientX, e.touches[0].clientY);
@@ -920,15 +889,9 @@
         lastFrameTime = currentTime;
 
         if (physicsEnabled && !isDragging) {
-            // Full 360-degree orientation mapping so flipping upside down or sideways works instantly with high speed
-            const gravityX = (tiltX / 15) * 1800; 
-            const gravityY = (tiltY / 15) * 1800; 
-
-            velX += gravityX * dt;
-            velY += gravityY * dt;
-
-            velX *= 0.98; 
-            velY *= 0.98;
+            velY += 800 * dt; 
+            velX *= 0.985; 
+            velY *= 0.985;
 
             posX += velX * dt;
             posY += velY * dt;
@@ -938,20 +901,20 @@
 
             if (posY >= maxTop) {
                 posY = maxTop;
-                velY = -velY * 0.8; 
-                velX *= 0.9;
+                velY = -velY * 0.75; 
+                velX *= 0.85;
             }
             if (posY <= 0) {
                 posY = 0;
-                velY = -velY * 0.8;
+                velY = -velY * 0.75;
             }
             if (posX >= maxLeft) {
                 posX = maxLeft;
-                velX = -velX * 0.8;
+                velX = -velX * 0.75;
             }
             if (posX <= 0) {
                 posX = 0;
-                velX = -velX * 0.8;
+                velX = -velX * 0.75;
             }
 
             updateBallPosition();
