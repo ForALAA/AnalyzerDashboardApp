@@ -610,14 +610,14 @@
 <body>
 
 <!-- Physics Bouncing Ball Floating Button -->
-<button id="fabBtn" title="Throw me around or click to open/close form!">➕</button>
+<button id="fabBtn" title="Throw me around or tilt your phone!">➕</button>
 
 <div class="container">
     <header>
         <h1>🔬 Analyzer Dashboard</h1>
         <div class="header-controls">
             <button id="physicsToggleBtn" class="physics-toggle-btn active" onclick="togglePhysics()">🛑 Disable Physics</button>
-            <button class="physics-toggle-btn" onclick="toggleFullScreen()">📱 Full Screen</button>
+            <button class="physics-toggle-btn" id="motionPermBtn" onclick="requestMotionPermission()" style="display:none;">📱 Enable Tilt</button>
         </div>
     </header>
 
@@ -748,6 +748,8 @@
 
     // Physics Controller State
     let physicsEnabled = true;
+    let tiltX = 0;
+    let tiltY = 0;
 
     function togglePhysics() {
         physicsEnabled = !physicsEnabled;
@@ -768,19 +770,37 @@
         }
     }
 
-    function toggleFullScreen() {
-        if (!document.fullscreenElement) {
-            document.documentElement.requestFullscreen().catch(err => {
-                console.log(`Error attempting to enable full-screen mode: ${err.message}`);
-            });
+    // Handle iOS / Mobile Device Orientation Permission & Events
+    function requestMotionPermission() {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            DeviceMotionEvent.requestPermission().then(response => {
+                if (response === 'granted') {
+                    window.addEventListener('deviceorientation', handleOrientation);
+                    document.getElementById('motionPermBtn').style.display = 'none';
+                }
+            }).catch(console.error);
         } else {
-            if (document.exitFullscreen) {
-                document.exitFullscreen();
-            }
+            window.addEventListener('deviceorientation', handleOrientation);
+            document.getElementById('motionPermBtn').style.display = 'none';
         }
     }
 
-    // Advanced Momentum Throw Physics Ball
+    function handleOrientation(e) {
+        // e.gamma is left/right tilt (-90 to 90), e.beta is front/back tilt (-180 to 180)
+        if (e.gamma !== null) tiltX = e.gamma;
+        if (e.beta !== null) tiltY = e.beta;
+    }
+
+    // Auto-listen if supported or show button for strict browsers (like iOS Safari)
+    if (window.DeviceOrientationEvent) {
+        if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+            document.getElementById('motionPermBtn').style.display = 'inline-block';
+        } else {
+            window.addEventListener('deviceorientation', handleOrientation);
+        }
+    }
+
+    // Advanced Momentum Throw & Tilt Physics Ball
     const fab = document.getElementById('fabBtn');
     let posX = 30, posY = 80;
     let velX = 0, velY = 0;
@@ -902,7 +922,13 @@
         lastFrameTime = currentTime;
 
         if (physicsEnabled && !isDragging) {
-            velY += 800 * dt; 
+            // Apply normal gravity downwards + tilt-based acceleration from phone tilting!
+            const gravityX = (tiltX / 90) * 600; // tilt left/right
+            const gravityY = 800 + (tiltY / 90) * 600; // regular drop + tilt forward/backward
+
+            velX += gravityX * dt;
+            velY += gravityY * dt;
+
             velX *= 0.985; 
             velY *= 0.985;
 
