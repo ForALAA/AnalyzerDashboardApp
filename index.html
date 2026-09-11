@@ -786,6 +786,8 @@
     }
 
     function handleOrientation(e) {
+        // e.gamma is left/right tilt (-90 to 90)
+        // e.beta is front/back tilt (-180 to 180) - when flipping upside down, beta shifts past 90 or negative
         if (e.gamma !== null) tiltX = e.gamma;
         if (e.beta !== null) tiltY = e.beta;
     }
@@ -798,7 +800,7 @@
         }
     }
 
-    // Advanced Momentum Throw & High-Sensitivity Tilt Physics Ball
+    // Ultra-Fast & Fully Responsive Tilt/Gravity Physics Ball
     const fab = document.getElementById('fabBtn');
     let posX = 30, posY = 80;
     let velX = 0, velY = 0;
@@ -864,8 +866,8 @@
                 avgX += velocityBuffer[i].x;
                 avgY += velocityBuffer[i].y;
             }
-            velX = (avgX / velocityBuffer.length) * 0.95;
-            velY = (avgY / velocityBuffer.length) * 0.95;
+            velX = (avgX / velocityBuffer.length) * 0.98;
+            velY = (avgY / velocityBuffer.length) * 0.98;
         }
     }
 
@@ -918,15 +920,15 @@
         lastFrameTime = currentTime;
 
         if (physicsEnabled && !isDragging) {
-            // Highly boosted sensitivity for tilt & gravity responsiveness
-            const gravityX = (tiltX / 25) * 1200; 
-            const gravityY = 900 + (tiltY / 25) * 1200; 
+            // Full 360-degree orientation mapping so flipping upside down or sideways works instantly with high speed
+            const gravityX = (tiltX / 15) * 1800; 
+            const gravityY = (tiltY / 15) * 1800; 
 
             velX += gravityX * dt;
             velY += gravityY * dt;
 
-            velX *= 0.99; 
-            velY *= 0.99;
+            velX *= 0.98; 
+            velY *= 0.98;
 
             posX += velX * dt;
             posY += velY * dt;
@@ -936,20 +938,20 @@
 
             if (posY >= maxTop) {
                 posY = maxTop;
-                velY = -velY * 0.82; 
+                velY = -velY * 0.8; 
                 velX *= 0.9;
             }
             if (posY <= 0) {
                 posY = 0;
-                velY = -velY * 0.82;
+                velY = -velY * 0.8;
             }
             if (posX >= maxLeft) {
                 posX = maxLeft;
-                velX = -velX * 0.82;
+                velX = -velX * 0.8;
             }
             if (posX <= 0) {
                 posX = 0;
-                velX = -velX * 0.82;
+                velX = -velX * 0.8;
             }
 
             updateBallPosition();
